@@ -13,9 +13,9 @@ batch_size = 64
 
 def process_poems1(file_name):
     """
-
+    注释有点错我帮你修正下
     :param file_name:
-    :return: poems_vector  have tow dimmention ,first is the poem, the second is the word_index
+    :return: poems_vector  have two dimension ,first is the poem, the second is the word_index
     e.g. [[1,2,3,4,5,6,7,8,9,10],[9,6,3,8,5,2,7,4,1]]
 
     """
@@ -23,8 +23,10 @@ def process_poems1(file_name):
     with open(file_name, "r", encoding='utf-8', ) as f:
         for line in f.readlines():
             try:
+                # poems文件的格式是 name:content
                 title, content = line.strip().split(':')
                 # content = content.replace(' ', '').replace('，','').replace('。','')
+                # 嘶 没有处理逗号和句号
                 content = content.replace(' ', '')
                 if '_' in content or '(' in content or '（' in content or '《' in content or '[' in content or \
                                 start_token in content or end_token in content:
@@ -128,8 +130,9 @@ def run_training():
     BATCH_SIZE = 100
 
     torch.manual_seed(5)
-    word_embedding = rnn_lstm.word_embedding( vocab_length= len(word_to_int) + 1 , embedding_dim= 100)
-    rnn_model = rnn_lstm.RNN_model(batch_sz = BATCH_SIZE,vocab_len = len(word_to_int) + 1 ,word_embedding = word_embedding ,embedding_dim= 100, lstm_hidden_dim=128)
+    # 下面这里的 rnn_lstm 应该是写错了 我把他改成了 rnn
+    word_embedding = rnn.word_embedding( vocab_length= len(word_to_int) + 1 , embedding_dim= 100)
+    rnn_model = rnn.RNN_model(batch_sz = BATCH_SIZE,vocab_len = len(word_to_int) + 1 ,word_embedding = word_embedding ,embedding_dim= 100, lstm_hidden_dim=128)
 
     # optimizer = optim.Adam(rnn_model.parameters(), lr= 0.001)
     optimizer=optim.RMSprop(rnn_model.parameters(), lr=0.01)
@@ -186,16 +189,21 @@ def pretty_print_poem(poem):  # 令打印的结果更工整
             break
         shige.append(w)
     poem_sentences = poem.split('。')
+    res = ""
     for s in poem_sentences:
         if s != '' and len(s) > 10:
+            res += s + '。'
             print(s + '。')
+    print(res)
 
 
 def gen_poem(begin_word):
     # poems_vector, word_int_map, vocabularies = process_poems2('./tangshi.txt')  #  use the other dataset to train the network
     poems_vector, word_int_map, vocabularies = process_poems1('./poems.txt')
-    word_embedding = rnn_lstm.word_embedding(vocab_length=len(word_int_map) + 1, embedding_dim=100)
-    rnn_model = rnn_lstm.RNN_model(batch_sz=64, vocab_len=len(word_int_map) + 1, word_embedding=word_embedding,
+    # 下面这里的 rnn_lstm 应该是写错了 我把他改成了 rnn
+    word_embedding = rnn.word_embedding(vocab_length=len(word_int_map) + 1, embedding_dim=100)
+    # 下面这里的 rnn_lstm 应该是写错了 我把他改成了 rnn
+    rnn_model = rnn.RNN_model(batch_sz=64, vocab_len=len(word_int_map) + 1, word_embedding=word_embedding,
                                    embedding_dim=100, lstm_hidden_dim=128)
 
     rnn_model.load_state_dict(torch.load('./poem_generator_rnn'))
@@ -212,22 +220,48 @@ def gen_poem(begin_word):
         poem += word
         # print(word)
         # print(poem)
-        if len(poem) > 30:
+        if len(poem) > 40:
             break
+    # 新增文件写入操作
+    with open('generated_poems.txt', 'a', encoding='utf-8') as f:
+        f.write(f"【{begin_word}】开头的诗歌：\n")
+        f.write(poem.replace(start_token, '').replace(end_token, '') + '\n\n')
     return poem
 
 
 
-run_training()  # 如果不是训练阶段 ，请注销这一行 。 网络训练时间很长。
+# run_training()  # 如果不是训练阶段 ，请注销这一行 。 网络训练时间很长。
 
-
+print('日开头的诗歌')
+print()
 pretty_print_poem(gen_poem("日"))
+print()
+print('红开头的诗歌')
+print()
 pretty_print_poem(gen_poem("红"))
+print()
+print('山开头的诗歌')
+print()
 pretty_print_poem(gen_poem("山"))
+print()
+print('夜开头的诗歌')
+print()
 pretty_print_poem(gen_poem("夜"))
+print()
+print('湖开头的诗歌')
+print()
 pretty_print_poem(gen_poem("湖"))
+print()
+print('湖开头的诗歌')
+print()
 pretty_print_poem(gen_poem("湖"))
+print()
+print('湖开头的诗歌')
+print()
 pretty_print_poem(gen_poem("湖"))
+print()
+print('君开头的诗歌')
+print()
 pretty_print_poem(gen_poem("君"))
 
 

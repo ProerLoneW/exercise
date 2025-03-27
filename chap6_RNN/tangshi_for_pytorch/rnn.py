@@ -19,6 +19,7 @@ def weights_init(m):
 
 class word_embedding(nn.Module):
     def __init__(self,vocab_length , embedding_dim):
+        # 把多少长度的文本token输入编码成多少维的特征
         super(word_embedding, self).__init__()
         w_embeding_random_intial = np.random.uniform(-1,1,size=(vocab_length ,embedding_dim))
         self.word_embedding = nn.Embedding(vocab_length,embedding_dim)
@@ -28,6 +29,7 @@ class word_embedding(nn.Module):
         :param input_sentence:  a tensor ,contain several word index.
         :return: a tensor ,contain word embedding tensor
         """
+        # 不需要训练 直接生成一段句子的embedding ?
         sen_embed = self.word_embedding(input_sentence)
         return sen_embed
 
@@ -46,10 +48,13 @@ class RNN_model(nn.Module):
         # the lstm should have two layers, and the  input and output tensors are provided as (batch, seq, feature)
         # ???
 
-
+        self.rnn_lstm = nn.LSTM(input_size=embedding_dim, 
+                                hidden_size=lstm_hidden_dim, 
+                                num_layers=2, 
+                                batch_first=True)
 
         ##########################################
-        self.fc = nn.Linear(lstm_hidden_dim, vocab_len )
+        self.fc = nn.Linear(lstm_hidden_dim, vocab_len)
         self.apply(weights_init) # call the weights initial function.
 
         self.softmax = nn.LogSoftmax() # the activation function.
@@ -62,7 +67,12 @@ class RNN_model(nn.Module):
         # the hidden output should be named as output, the initial hidden state and cell state set to zero.
         # ???
 
-
+        # Initialize hidden state and cell state with zeros
+        h0 = torch.zeros(2, batch_input.shape[0], self.lstm_dim).to(batch_input.device)
+        c0 = torch.zeros(2, batch_input.shape[0], self.lstm_dim).to(batch_input.device)
+        
+        # Forward propagate LSTM
+        output, (hn, cn) = self.rnn_lstm(batch_input, (h0, c0))
 
 
         ################################################
